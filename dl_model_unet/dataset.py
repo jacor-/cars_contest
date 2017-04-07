@@ -34,7 +34,7 @@ def get_labels(labels_data, labels_group):
             classtype = labels_data['class'].ix[i]
             my_classtype = labels_group[classtype]
             for coord in coords:
-                coordinates[casename][my_classtype].append(map(int,coord.split(":")))
+                coordinates[casename][my_classtype].append(list(map(int,coord.split(":"))))
     return coordinates
 
 def load_image(casename):
@@ -46,14 +46,18 @@ def chunk(cases, dataset, batch_size, max_shape, object_types = ['Car']):
         for case in cases:
             coordinates = dataset[case]
             im = load_image(case)
-            mask = np.zeros([1,im.shape[0], im.shape[1]])
+            mask = np.zeros([2,im.shape[0], im.shape[1]])
+            mask[1,:,:] = 1
             for obj in object_types:
                 for x,y in coordinates[obj]:
                     mask[0,y-50:y+50,x-50:x+50] = 1
+            mask[1] = mask[1]-mask[0]
             orig = np.random.randint(2000-max_shape, size = [2])
             X.append(  im[orig[0]:orig[0]+max_shape,orig[1]:orig[1]+max_shape,:])
             Y.append(mask[:,orig[0]:orig[0]+max_shape,orig[1]:orig[1]+max_shape])
-            if len(X) == 2:
-                yield np.array(X).transpose(0,3,1,2) / 512., np.array(Y)
+            if len(X) == batch_size:
+                #yield np.array(X).transpose(0,3,1,2) / 255., np.array(Y)
+                #yield np.array(X).mean(axis=3).reshape([batch_size,max_shape,max_shape,1]) / 512., np.array(Y).transpose(0,2,3,1)
+                yield np.array(X) / 255., np.array(Y).transpose(0,2,3,1)
                 X, Y = [], []
         np.random.shuffle(cases)
