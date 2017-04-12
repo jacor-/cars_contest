@@ -95,7 +95,7 @@ class TensorBoard(Callback):
         # print('[TB] EPOCH FINISHED!\n')
         # print(epoch)
 
-        if self.model.validation_data and self.histogram_freq:
+        if self.histogram_freq and self.model.validation_data:
             if epoch % self.histogram_freq == 0:
                 # print('[TBD] Inside histogram_freq')
                 # TODO: implement batched calls to sess.run

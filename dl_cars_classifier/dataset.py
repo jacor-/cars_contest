@@ -29,7 +29,7 @@ def get_positive_patches(image, coordinates, patch_size, object_types):
     if len(all_coords) > 0:
         ### positive patches
         for x,y in all_coords:
-            patches.append(image[x-patch_size/2:x+patch_size / 2,y-patch_size/2:y+patch_size / 2])
+            patches.append(image[int(x-patch_size/2):int(x+patch_size / 2),int(y-patch_size/2):int(y+patch_size / 2),:])
     return np.array(patches, dtype = 'float32') / 255
 
 ####
@@ -53,7 +53,8 @@ def get_negative_patches(image, coordinates, patch_size, quant_patches):
             all_coords.append(new_coord)
     patches = []
     for x,y in all_coords:
-        patches.append(image[x-patch_size/2:x+patch_size / 2,y-patch_size/2:y+patch_size / 2])
+        patches.append(image[int(x-patch_size/2):int(x+patch_size / 2),int(y-patch_size/2):int(y+patch_size / 2),:])
+
     return np.array(patches, dtype = 'float32') / 255
 
 
