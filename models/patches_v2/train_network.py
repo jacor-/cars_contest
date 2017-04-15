@@ -26,7 +26,7 @@ image_size_nn = 48
 num_valid_cases = 60
 patch_size = 110
 batch_size = 25
-big_batch_size, valid_batch_size = 150, 150
+big_batch_size, valid_batch_size = batch_size * 5, batch_size * 3
 
 restart_valid_train = True
 
@@ -103,12 +103,14 @@ steps_per_epoch = 250
 for i_epoch in range(nb_epoch):
     j_ep = 0
     for x, y in train_generator:
-        if j_ep * batch_size >= steps_per_epoch:
+        if j_ep * big_batch_size / batch_size >= steps_per_epoch:
             break
         j_ep += 1
         model.fit(x,y,batch_size=batch_size,epochs=1,shuffle = False)
     ## Validation stage
+    losses = []
     for x,y in valid_generator:
-        loss = model.evaluate(x,y)
+        losses.append( model.evaluate(x,y) )
         break
+    print(loss)
     print("Epoch %d: %0.3f" % (i_epoch, np.mean(np.concatenate(loss))))
