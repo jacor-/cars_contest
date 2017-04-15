@@ -111,7 +111,7 @@ for i_epoch in range(nb_epoch):
     for x, y in train_generator:
         if j_ep  < steps_per_epoch:
             j_ep += 1
-            model.fit(x,y,verbose = False, batch_size=batch_size,epochs=1,shuffle = False, callbacks=[loss_history])
+            model.fit(x,y,verbose = 0, batch_size=batch_size,epochs=1,shuffle = False, callbacks=[loss_history])
             loss_train.append(np.mean(loss_history.history['loss']))
         else:
             break
@@ -122,8 +122,7 @@ for i_epoch in range(nb_epoch):
     j_valid = 0
     for x,y in valid_generator:
         if j_valid < validation_steps:
-            print(model.evaluate(x,y))
-            losses.append( model.evaluate(x,y))
+            losses.append( model.evaluate(x,y, verbose=0))
             j_valid += 1
         else:
             break
