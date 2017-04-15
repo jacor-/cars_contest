@@ -8,6 +8,7 @@ from common import dataset_loaders
 import numpy as np
 from keras.preprocessing.image import ImageDataGenerator
 from patch_generators.pos_and_negative_fix_size import LabelEncoding, data_generator
+import time
 
 experiment_name = 'vehicle_empty_resnet_v0'
 
@@ -26,7 +27,7 @@ image_size_nn = 48
 num_valid_cases = 60
 patch_size = 110
 batch_size = 25
-big_batch_size, valid_batch_size = 2500, 500
+big_batch_size, valid_batch_size = 2000, 500
 
 restart_valid_train = True
 
@@ -86,7 +87,7 @@ loss_history = History()
 
 # Load model
 model = ResnetBuilder().build_resnet_50((3,image_size_nn,image_size_nn),len(existing_labels))
-model.compile(optimizer=Adam(lr=1e-4), loss='categorical_crossentropy', metrics=['accuracy'])#,'fmeasure'])
+model.compile(optimizer=Adam(lr=1e-4), loss='categorical_crossentropy')#,'fmeasure'])
 model.load_weights(OUTPUT_MODEL)
 
 
@@ -98,19 +99,20 @@ callbacks=[model_checkpoint],#,tb], #[tb, model_checkpoint],
 validation_data=valid_generator,  # TODO: is_training=False
 validation_steps=2
 max_q_size=3,
-steps_per_epoch = 20
+steps_per_epoch = 5
 
 
 
 for i_epoch in range(nb_epoch):
     j_ep = 0
+
+    t1 = time.time()
+    loss_train = []
     for x, y in train_generator:
         if j_ep  <= steps_per_epoch:
             j_ep += 1
             model.fit(x,y,verbose = False, batch_size=batch_size,epochs=1,shuffle = False, callbacks=[loss_history])
-            print(loss_history.history)
-            print(loss_history.epoch)
-
+            loss_train(np.mean(loss_history.history['loss']))
         else:
             break
 
@@ -123,4 +125,4 @@ for i_epoch in range(nb_epoch):
             j_valid += 1
         else:
             break
-    print("Epoch %d   -  valid loss: %0.3f   -   train loss: %0.3f" % (i_epoch, np.mean(np.concatenate(losses)), np.mean(history.losses)))
+    print("Epoch %d   -  valid loss: %0.3f   -   train loss: %0.3f    - Time %0.2f" % (i_epoch, np.mean(np.concatenate(losses)), np.mean(loss_train), time.time()-t1))
