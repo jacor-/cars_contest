@@ -71,7 +71,7 @@ from keras import backend as K
 K.set_image_dim_ordering('th')
 
 from keras.optimizers import Adam
-from keras.callbacks import ModelCheckpoint, Callback
+from keras.callbacks import ModelCheckpoint, Callback, History
 from dl_utils.dl_networks.resnet import ResnetBuilder
 from dl_utils.tb_callback import TensorBoard
 
@@ -82,6 +82,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s  %(levelname)-8s %(m
 
 tb = TensorBoard(log_dir=LOGS_PATH, histogram_freq=1, write_graph=False, write_images=False)  # replace keras.callbacks.TensorBoard
 model_checkpoint = ModelCheckpoint(OUTPUT_MODEL, monitor='loss', save_best_only=True)
+loss_history = History()
 
 # Load model
 model = ResnetBuilder().build_resnet_50((3,image_size_nn,image_size_nn),len(existing_labels))
@@ -99,21 +100,17 @@ validation_steps=2
 max_q_size=3,
 steps_per_epoch = 20
 
-class LossHistory(keras.callbacks.Callback):
-    def on_train_begin(self, logs={}):
-        self.losses = []
 
-    def on_batch_end(self, batch, logs={}):
-        self.losses.append(logs.get('loss'))
-
-history = LossHistory()
 
 for i_epoch in range(nb_epoch):
     j_ep = 0
     for x, y in train_generator:
         if j_ep  <= steps_per_epoch:
             j_ep += 1
-            model.fit(x,y,verbose = False, batch_size=batch_size,epochs=1,shuffle = False, callbacks=[history])
+            model.fit(x,y,verbose = False, batch_size=batch_size,epochs=1,shuffle = False, callbacks=[loss_history])
+            print(loss_history.history)
+            print(loss_history.epoch)
+
         else:
             break
 
