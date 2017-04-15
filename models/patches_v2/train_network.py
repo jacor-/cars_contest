@@ -73,6 +73,8 @@ from keras.callbacks import ModelCheckpoint, Callback
 from dl_utils.dl_networks.resnet import ResnetBuilder
 from dl_utils.tb_callback import TensorBoard
 
+K.set_image_dim_ordering('th')
+K.set_image_data_format('channels_last')
 
     
 
@@ -86,8 +88,6 @@ model = ResnetBuilder().build_resnet_50((3,image_size_nn,image_size_nn),len(exis
 model.compile(optimizer=Adam(lr=1e-4), loss='categorical_crossentropy', metrics=['accuracy'])#,'fmeasure'])
 # model.load_weights(OUTPUT_MODEL)
 
-K.set_image_dim_ordering('th')
-K.set_image_data_format('channels_first')
 model.fit_generator(generator=train_generator,
                     steps_per_epoch=50,  # make it small to update TB and CHECKPOINT frequently
                     nb_epoch=500,
