@@ -87,7 +87,7 @@ model.compile(optimizer=Adam(lr=1e-4), loss='categorical_crossentropy', metrics=
 # model.load_weights(OUTPUT_MODEL)
 
 K.set_image_dim_ordering('th')
-K.set_image_data_format('channels_last')
+#K.set_image_data_format('channels_last')
 model.fit_generator(generator=train_generator,
                     steps_per_epoch=50,  # make it small to update TB and CHECKPOINT frequently
                     nb_epoch=500,
@@ -96,5 +96,5 @@ model.fit_generator(generator=train_generator,
                     callbacks=[model_checkpoint], #[tb, model_checkpoint],
                     validation_data=valid_generator,  # TODO: is_training=False
                     validation_steps=10,
-                    max_q_size=128,
+                    max_q_size=25,
                     nb_worker=1)  # a locker is needed if increased the number of parallel workers
