@@ -68,13 +68,15 @@ valid_generator = data_generator(data_augmentation, labelencoder, valid_data, ba
 import logging
 from sklearn import metrics
 from keras import backend as K
+
+K.set_image_dim_ordering('th')
+K.set_image_data_format('channels_first')
+
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint, Callback
 from dl_utils.dl_networks.resnet import ResnetBuilder
 from dl_utils.tb_callback import TensorBoard
 
-K.set_image_dim_ordering('th')
-K.set_image_data_format('channels_last')
 
     
 
