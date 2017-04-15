@@ -65,6 +65,7 @@ def generatePatches_from_image(imagename, df, patch_size, quant_negative_patches
     img = dataset_loaders.load_image(imagename)
     X_pos, Y_pos = _get_positive_patches_from_image(img, imagename, df, patch_size)
     X_neg, Y_neg = _get_negative_patches_from_image(img, imagename, df, patch_size, quant_negative_patches, negative_patch_label)
+    del img
     if len(Y_pos) == 0:
         return X_neg, Y_neg
     else:
@@ -93,8 +94,10 @@ def generate_chunks(df, batch_size, patch_size, min_buffer_before_start = 250, n
 
 def data_generator(dataaugmentation, labelencoder, df, batch_size, patch_size, min_buffer_before_start = 200, neg_patches = 15, image_size_nn = 48):
     for x, y in generate_chunks(df, batch_size, patch_size, min_buffer_before_start, neg_patches):
-        for a1, b2 in dataaugmentation.flow(x, y, batch_size = batch_size, shuffle = False):
-            ## TODO If I want to do many rescales, here is the point!
-            a1 = np.array([scipy.misc.imresize(x, [image_size_nn, image_size_nn]) / 255 for x in a1])
-            yield a1.transpose([0,3,1,2]), labelencoder.encode(b2)
-            break
+        if dataaugmentation is not None:
+            for x, y in dataaugmentation.flow(x, y, batch_size = batch_size, shuffle = False):
+                break
+        ## TODO If I want to do many rescales, here is the point!
+        x = np.array([scipy.misc.imresize(ss, [image_size_nn, image_size_nn]) / 255 for ss in x])
+        yield x.transpose([0,3,1,2]), labelencoder.encode(y)
+        break

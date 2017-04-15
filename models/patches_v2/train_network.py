@@ -26,6 +26,7 @@ image_size_nn = 48
 num_valid_cases = 60
 patch_size = 110
 batch_size = 25
+big_batch_size, valid_batch_size = 150, 150
 
 restart_valid_train = True
 
@@ -58,9 +59,8 @@ existing_labels = np.concatenate([original_labels['class'].unique(), ['backgroun
 labelencoder = LabelEncoding(existing_labels)
 data_augmentation = ImageDataGenerator(vertical_flip=True, horizontal_flip = True, zoom_range = 0.02, rotation_range=180)
 
-train_generator = data_generator(data_augmentation, labelencoder, train_data, batch_size, patch_size, image_size_nn)
-valid_generator = data_generator(data_augmentation, labelencoder, valid_data, batch_size, patch_size, image_size_nn)
-
+train_generator = data_generator(data_augmentation, labelencoder, train_data, big_batch_size, patch_size, image_size_nn)
+valid_generator = data_generator(None, labelencoder, valid_data, valid_batch_size, patch_size, image_size_nn)
 
 
 
@@ -87,16 +87,28 @@ model_checkpoint = ModelCheckpoint(OUTPUT_MODEL, monitor='loss', save_best_only=
 # Load model
 model = ResnetBuilder().build_resnet_50((3,image_size_nn,image_size_nn),len(existing_labels))
 model.compile(optimizer=Adam(lr=1e-4), loss='categorical_crossentropy', metrics=['accuracy'])#,'fmeasure'])
-# model.load_weights(OUTPUT_MODEL)
+model.load_weights(OUTPUT_MODEL)
 
-model.fit_generator(generator=train_generator,
-                    steps_per_epoch=250,  # make it small to update TB and CHECKPOINT frequently
-                    nb_epoch=500,
-                    verbose=1,
-                    #class_weight={0:1., 1:4.},
-                    callbacks=[model_checkpoint],#,tb], #[tb, model_checkpoint],
-                    validation_data=valid_generator,  # TODO: is_training=False
-                    validation_steps=10,
-                    max_q_size=25,
-                    pickle_safe=False,
-                    nb_worker=1)  # a locker is needed if increased the number of parallel workers
+
+
+nb_epoch=500
+verbose=1
+#class_weight={0:1., 1:4.},
+callbacks=[model_checkpoint],#,tb], #[tb, model_checkpoint],
+validation_data=valid_generator,  # TODO: is_training=False
+validation_steps=3,
+max_q_size=3,
+steps_per_epoch = 250
+
+for i_epoch in range(nb_epoch):
+    j_ep = 0
+    for x, y in train_generator:
+        if j_ep * batch_size >= steps_per_epoch:
+            break
+        j_ep += 1
+        model.fit(x,y,batch_size=batch_size,epochs=1,shuffle = False)
+    ## Validation stage
+    for x,y in valid_generator:
+        loss = model.evaluate(x,y)
+        break
+    print("Epoch %d: %0.3f" % (i_epoch, loss))
