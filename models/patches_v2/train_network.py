@@ -27,7 +27,7 @@ image_size_nn = 48
 num_valid_cases = 60
 patch_size = 110
 batch_size = 25
-big_batch_size, valid_batch_size = 100, 500
+big_batch_size, valid_batch_size = 2500, 400
 
 restart_valid_train = True
 
@@ -117,16 +117,17 @@ for i_epoch in range(nb_epoch):
             break
     train_loss = np.mean(loss_train)
 
-    ## Validation stage
+    # Validation stage
     losses = []
     j_valid = 0
     for x,y in valid_generator:
         if j_valid < validation_steps:
+            print(model.evaluate(x,y))
             losses.append( model.evaluate(x,y))
             j_valid += 1
         else:
             break
-    valid_loss = np.mean(np.concatenate(losses))
+    valid_loss = np.mean(losses)
 
     # Save weights
     if valid_loss < valid_loss:
