@@ -122,7 +122,7 @@ for i_epoch in range(nb_epoch):
     j_valid = 0
     for x,y in valid_generator:
         if j_valid < validation_steps:
-            losses.append( model.evaluate(x,y) , verbose = False)
+            losses.append( model.evaluate(x,y, verbose = False))
             j_valid += 1
         else:
             break
