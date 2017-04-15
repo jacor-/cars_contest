@@ -107,10 +107,10 @@ for i_epoch in range(nb_epoch):
             break
         j_ep += 1
         model.fit(x,y,batch_size=batch_size,epochs=1,shuffle = False)
+        print(j_ep)
     ## Validation stage
     losses = []
     for x,y in valid_generator:
         losses.append( model.evaluate(x,y) )
         break
-    print(loss)
-    print("Epoch %d: %0.3f" % (i_epoch, np.mean(np.concatenate(loss))))
+    print("Epoch %d: %0.3f" % (i_epoch, np.mean(np.concatenate(losses))))
