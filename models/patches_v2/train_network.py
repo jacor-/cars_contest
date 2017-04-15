@@ -26,7 +26,7 @@ image_size_nn = 48
 num_valid_cases = 60
 patch_size = 110
 batch_size = 25
-big_batch_size, valid_batch_size = batch_size * 5, batch_size * 3
+big_batch_size, valid_batch_size = 1000, batch_size * 10
 
 restart_valid_train = True
 
@@ -59,8 +59,8 @@ existing_labels = np.concatenate([original_labels['class'].unique(), ['backgroun
 labelencoder = LabelEncoding(existing_labels)
 data_augmentation = ImageDataGenerator(vertical_flip=True, horizontal_flip = True, zoom_range = 0.02, rotation_range=180)
 
-train_generator = data_generator(data_augmentation, labelencoder, train_data, batch_size=big_batch_size, min_buffer_before_start = 400, patch_size=patch_size, image_size_nn=image_size_nn)
-valid_generator = data_generator(None, labelencoder, valid_data, batch_size=valid_batch_size,  min_buffer_before_start = 100, patch_size=patch_size, image_size_nn=image_size_nn)
+train_generator = data_generator(data_augmentation, labelencoder, train_data, batch_size=big_batch_size, min_buffer_before_start = 2000, patch_size=patch_size, image_size_nn=image_size_nn)
+valid_generator = data_generator(None, labelencoder, valid_data, batch_size=valid_batch_size,  min_buffer_before_start = 200, patch_size=patch_size, image_size_nn=image_size_nn)
 
 
 
@@ -90,26 +90,24 @@ model.load_weights(OUTPUT_MODEL)
 
 
 
-nb_epoch=500
+nb_epoch=1000
 verbose=1
 #class_weight={0:1., 1:4.},
 callbacks=[model_checkpoint],#,tb], #[tb, model_checkpoint],
 validation_data=valid_generator,  # TODO: is_training=False
-validation_steps=3
+validation_steps=1
 max_q_size=3,
-steps_per_epoch = 500
+steps_per_epoch = 100
 
 for i_epoch in range(nb_epoch):
     j_ep = 0
     for x, y in train_generator:
-        print(j_ep * big_batch_size / batch_size, steps_per_epoch)
         if j_ep * big_batch_size / batch_size <= steps_per_epoch:
             j_ep += 1
             model.fit(x,y,batch_size=batch_size,epochs=1,shuffle = False)
         else:
             break
 
-    print(j_ep, j_ep * big_batch_size / batch_size, steps_per_epoch)
     ## Validation stage
     losses = []
     j_valid = 0
@@ -119,5 +117,4 @@ for i_epoch in range(nb_epoch):
             j_valid += 1
         else:
             break
-    print(j_ep, losses)
     print("Epoch %d: %0.3f" % (i_epoch, np.mean(np.concatenate(losses))))
