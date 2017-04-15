@@ -103,14 +103,21 @@ steps_per_epoch = 250
 for i_epoch in range(nb_epoch):
     j_ep = 0
     for x, y in train_generator:
-        if j_ep * big_batch_size / batch_size >= steps_per_epoch:
+        if j_ep * big_batch_size / batch_size <= steps_per_epoch:
+            j_ep += 1
+            model.fit(x,y,batch_size=batch_size,epochs=1,shuffle = False)
+        else:
             break
-        j_ep += 1
-        model.fit(x,y,batch_size=batch_size,epochs=1,shuffle = False)
-        print(j_ep)
+
+    print(j_ep)
     ## Validation stage
     losses = []
+    j_valid = 0
     for x,y in valid_generator:
-        losses.append( model.evaluate(x,y) )
-        break
+        if j_valid <= validation_steps:
+            losses.append( model.evaluate(x,y) )
+            j_valid += 1
+        else:
+            break
+    print(j_ep)
     print("Epoch %d: %0.3f" % (i_epoch, np.mean(np.concatenate(losses))))
