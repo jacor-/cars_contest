@@ -82,8 +82,11 @@ def generate_chunks(df, batch_size, patch_size, min_buffer_before_start = 250, n
         else:
             buffer_X = np.vstack([X, buffer_X])
             buffer_Y = np.concatenate([Y, buffer_Y])
+
+        print('Not yet', batch_size, len(buffer_X), min_buffer_before_start)
         
         if len(buffer_X) > min_buffer_before_start:
+            print(batch_size, len(buffer_X), min_buffer_before_start)
             # Start sending!
             indexs = np.array(range(len(buffer_X)))
             np.random.shuffle(indexs)
@@ -100,4 +103,3 @@ def data_generator(dataaugmentation, labelencoder, df, batch_size, patch_size, m
         ## TODO If I want to do many rescales, here is the point!
         x = np.array([scipy.misc.imresize(ss, [image_size_nn, image_size_nn]) / 255 for ss in x])
         yield x.transpose([0,3,1,2]), labelencoder.encode(y)
-        break
