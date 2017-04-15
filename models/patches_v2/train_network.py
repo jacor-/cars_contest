@@ -70,7 +70,6 @@ from sklearn import metrics
 from keras import backend as K
 
 K.set_image_dim_ordering('th')
-K.set_image_data_format('channels_first')
 
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint, Callback

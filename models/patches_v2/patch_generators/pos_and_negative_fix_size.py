@@ -91,7 +91,7 @@ def generate_chunks(df, batch_size, patch_size, min_buffer_before_start = 250, n
 
 def data_generator(dataaugmentation, labelencoder, df, batch_size, patch_size, min_buffer_before_start = 200, neg_patches = 15, image_size_nn = 48):
     for x, y in generate_chunks(df, batch_size, patch_size, min_buffer_before_start, neg_patches):
-        for a1, b2 in dataaugmentation.flow(x.transpose([0,3,1,2]), y, batch_size = batch_size, shuffle = False):
+        for a1, b2 in dataaugmentation.flow(x, y, batch_size = batch_size, shuffle = False):
             ## TODO If I want to do many rescales, here is the point!
             a1 = np.array([scipy.misc.imresize(x, [image_size_nn, image_size_nn]) / 255 for x in a1])
             yield a1.transpose([0,3,1,2]), labelencoder.encode(b2)
