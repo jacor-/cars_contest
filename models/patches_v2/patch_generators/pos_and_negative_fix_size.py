@@ -49,7 +49,9 @@ def _get_negative_patches_from_image(img, case, df, patch_size, quant_patches, l
         new_coord = np.random.randint(2000-patch_size, size = [2]) + patch_size/2
         # we are far from all the other car coordinates
         if car_coordinates.shape[0] > 0:
-            if (np.abs(car_coordinates - new_coord) > patch_size).max(axis=1).all():
+            # BE CAREFUL!!! We divide by 3 to get some patches where there is a car, but not centered in the picture.
+            # We want the network to be able to be able to distinguish location
+            if (np.abs(car_coordinates - new_coord) > patch_size / 3).max(axis=1).all(): 
                 all_coords.append(new_coord)
         else:
             all_coords.append(new_coord)

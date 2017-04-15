@@ -90,11 +90,11 @@ model.compile(optimizer=Adam(lr=1e-4), loss='categorical_crossentropy', metrics=
 # model.load_weights(OUTPUT_MODEL)
 
 model.fit_generator(generator=train_generator,
-                    steps_per_epoch=200,  # make it small to update TB and CHECKPOINT frequently
+                    steps_per_epoch=250,  # make it small to update TB and CHECKPOINT frequently
                     nb_epoch=500,
                     verbose=1,
                     #class_weight={0:1., 1:4.},
-                    callbacks=[model_checkpoint,tb], #[tb, model_checkpoint],
+                    callbacks=[model_checkpoint],#,tb], #[tb, model_checkpoint],
                     validation_data=valid_generator,  # TODO: is_training=False
                     validation_steps=10,
                     max_q_size=25,
