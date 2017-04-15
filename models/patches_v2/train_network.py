@@ -111,4 +111,4 @@ for i_epoch in range(nb_epoch):
     for x,y in valid_generator:
         loss = model.evaluate(x,y)
         break
-    print("Epoch %d: %0.3f" % (i_epoch, loss))
+    print("Epoch %d: %0.3f" % (i_epoch, np.mean(np.concatenate(loss))))
