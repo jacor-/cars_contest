@@ -129,6 +129,7 @@ for i_epoch in range(nb_epoch):
     valid_loss = np.mean(losses)
 
     # Save weights
-    if valid_loss < valid_loss:
+    if valid_loss < min_val_loss:
+        min_val_loss = valid_loss
         model.save_weights(OUTPUT_MODEL)
     print("Epoch %d   -  valid loss: %0.3f   -   train loss: %0.3f    - Time %0.2f" % (i_epoch, valid_loss, train_loss, time.time()-t1))
