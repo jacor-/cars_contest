@@ -27,7 +27,7 @@ image_size_nn = 48
 num_valid_cases = 60
 patch_size = 110
 batch_size = 25
-big_batch_size, valid_batch_size = 2000, 500
+big_batch_size, valid_batch_size = 100, 500
 
 restart_valid_train = True
 
@@ -102,7 +102,7 @@ max_q_size=3,
 steps_per_epoch = 5
 
 
-
+min_val_loss = 10000
 for i_epoch in range(nb_epoch):
     j_ep = 0
 
@@ -112,9 +112,10 @@ for i_epoch in range(nb_epoch):
         if j_ep  < steps_per_epoch:
             j_ep += 1
             model.fit(x,y,verbose = False, batch_size=batch_size,epochs=1,shuffle = False, callbacks=[loss_history])
-            loss_train(np.mean(loss_history.history['loss']))
+            loss_train.append(np.mean(loss_history.history['loss']))
         else:
             break
+    train_loss = np.mean(loss_train)
 
     ## Validation stage
     losses = []
@@ -125,4 +126,9 @@ for i_epoch in range(nb_epoch):
             j_valid += 1
         else:
             break
-    print("Epoch %d   -  valid loss: %0.3f   -   train loss: %0.3f    - Time %0.2f" % (i_epoch, np.mean(np.concatenate(losses)), np.mean(loss_train), time.time()-t1))
+    valid_loss = np.mean(np.concatenate(losses))
+
+    # Save weights
+    if valid_loss < valid_loss:
+        model.save_weights(OUTPUT_MODEL)
+    print("Epoch %d   -  valid loss: %0.3f   -   train loss: %0.3f    - Time %0.2f" % (i_epoch, valid_loss, train_loss, time.time()-t1))
