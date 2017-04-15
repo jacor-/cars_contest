@@ -26,7 +26,7 @@ image_size_nn = 48
 num_valid_cases = 60
 patch_size = 110
 batch_size = 25
-big_batch_size, valid_batch_size = 1000, batch_size * 10
+big_batch_size, valid_batch_size = 2500, 500
 
 restart_valid_train = True
 
@@ -59,8 +59,8 @@ existing_labels = np.concatenate([original_labels['class'].unique(), ['backgroun
 labelencoder = LabelEncoding(existing_labels)
 data_augmentation = ImageDataGenerator(vertical_flip=True, horizontal_flip = True, zoom_range = 0.02, rotation_range=180)
 
-train_generator = data_generator(data_augmentation, labelencoder, train_data, batch_size=big_batch_size, min_buffer_before_start = 2000, patch_size=patch_size, image_size_nn=image_size_nn)
-valid_generator = data_generator(None, labelencoder, valid_data, batch_size=valid_batch_size,  min_buffer_before_start = 200, patch_size=patch_size, image_size_nn=image_size_nn)
+train_generator = data_generator(data_augmentation, labelencoder, train_data, batch_size=big_batch_size, min_buffer_before_start = 5000, patch_size=patch_size, image_size_nn=image_size_nn)
+valid_generator = data_generator(None, labelencoder, valid_data, batch_size=valid_batch_size,  min_buffer_before_start = 1000, patch_size=patch_size, image_size_nn=image_size_nn)
 
 
 
@@ -95,16 +95,25 @@ verbose=1
 #class_weight={0:1., 1:4.},
 callbacks=[model_checkpoint],#,tb], #[tb, model_checkpoint],
 validation_data=valid_generator,  # TODO: is_training=False
-validation_steps=1
+validation_steps=2
 max_q_size=3,
-steps_per_epoch = 100
+steps_per_epoch = 20
+
+class LossHistory(keras.callbacks.Callback):
+    def on_train_begin(self, logs={}):
+        self.losses = []
+
+    def on_batch_end(self, batch, logs={}):
+        self.losses.append(logs.get('loss'))
+
+history = LossHistory()
 
 for i_epoch in range(nb_epoch):
     j_ep = 0
     for x, y in train_generator:
-        if j_ep * big_batch_size / batch_size <= steps_per_epoch:
+        if j_ep  <= steps_per_epoch:
             j_ep += 1
-            model.fit(x,y,batch_size=batch_size,epochs=1,shuffle = False)
+            model.fit(x,y,verbose = False, batch_size=batch_size,epochs=1,shuffle = False, callbacks=[history])
         else:
             break
 
@@ -113,8 +122,8 @@ for i_epoch in range(nb_epoch):
     j_valid = 0
     for x,y in valid_generator:
         if j_valid <= validation_steps:
-            losses.append( model.evaluate(x,y) )
+            losses.append( model.evaluate(x,y) , verbose = False)
             j_valid += 1
         else:
             break
-    print("Epoch %d: %0.3f" % (i_epoch, np.mean(np.concatenate(losses))))
+    print("Epoch %d   -  valid loss: %0.3f   -   train loss: %0.3f" % (i_epoch, np.mean(np.concatenate(losses)), np.mean(history.losses)))
