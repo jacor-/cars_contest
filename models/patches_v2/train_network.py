@@ -134,7 +134,7 @@ try:
             min_val_loss = valid_loss
             model.save_weights(OUTPUT_MODEL)
         print("Epoch %d   -  valid loss: %0.3f   -   train loss: %0.3f    - Time %0.2f" % (i_epoch, valid_loss, train_loss, time.time()-t1))
-except KeyboardInterrupt:
-    model.save_weights(OUTPUT_MODEL.split(".")[0] + "_manually_interrupted.hdf5")
+except:
+    model.save_weights(OUTPUT_MODEL.split(".")[0] + "_interrupted_by_exception.hdf5")
 
 print("EXITING!")
