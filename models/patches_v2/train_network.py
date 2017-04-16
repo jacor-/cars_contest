@@ -27,7 +27,7 @@ image_size_nn = 48
 num_valid_cases = 60
 patch_size = 110
 batch_size = 25
-big_batch_size, valid_batch_size = 200, 400
+big_batch_size, valid_batch_size = 2500, 400
 
 restart_valid_train = True
 
@@ -95,10 +95,7 @@ model.compile(optimizer=Adam(lr=1e-4), loss='categorical_crossentropy')#,'fmeasu
 nb_epoch=1000
 verbose=1
 #class_weight={0:1., 1:4.},
-callbacks=[model_checkpoint],#,tb], #[tb, model_checkpoint],
-validation_data=valid_generator,  # TODO: is_training=False
 validation_steps=2
-max_q_size=3,
 steps_per_epoch = 5
 
 
