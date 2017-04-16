@@ -10,7 +10,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from patch_generators.pos_and_negative_fix_size import LabelEncoding, data_generator
 import time
 
-experiment_name = 'vehicle_empty_resnet_v0'
+experiment_name = 'all_resnet_v0'
 
 # We create the data structure we need
 experiment_folder_name = 'patches_single_size'
@@ -18,7 +18,7 @@ os.system('mkdir -p %s/%s' % (settings.DATAMODEL_PATH, experiment_folder_name))
 os.system('mkdir -p %s/%s/models' % (settings.DATAMODEL_PATH, experiment_folder_name))
 os.system('mkdir -p %s/%s/logs' % (settings.DATAMODEL_PATH, experiment_folder_name))
 
-OUTPUT_MODEL = '%s/%s/models/vehicle_empty_discriminator.hdf5' % (settings.DATAMODEL_PATH, experiment_folder_name)
+OUTPUT_MODEL = '%s/%s/models/all_discriminator.hdf5' % (settings.DATAMODEL_PATH, experiment_folder_name)
 LOGS_PATH    = '%s/%s/logs/%s' % (settings.DATAMODEL_PATH, experiment_folder_name, experiment_name)
 
 
@@ -27,7 +27,7 @@ image_size_nn = 48
 num_valid_cases = 60
 patch_size = 110
 batch_size = 25
-big_batch_size, valid_batch_size = 2500, 400
+big_batch_size, valid_batch_size = 200, 400
 
 restart_valid_train = True
 
@@ -103,33 +103,38 @@ steps_per_epoch = 5
 
 
 min_val_loss = 10000
-for i_epoch in range(nb_epoch):
-    j_ep = 0
+try:
+    for i_epoch in range(nb_epoch):
+        j_ep = 0
 
-    t1 = time.time()
-    loss_train = []
-    for x, y in train_generator:
-        if j_ep  < steps_per_epoch:
-            j_ep += 1
-            model.fit(x,y,verbose = 0, batch_size=batch_size,epochs=1,shuffle = False, callbacks=[loss_history])
-            loss_train.append(np.mean(loss_history.history['loss']))
-        else:
-            break
-    train_loss = np.mean(loss_train)
+        t1 = time.time()
+        loss_train = []
+        for x, y in train_generator:
+            if j_ep  < steps_per_epoch:
+                j_ep += 1
+                model.fit(x,y,verbose = 0, batch_size=batch_size,epochs=1,shuffle = False, callbacks=[loss_history])
+                loss_train.append(np.mean(loss_history.history['loss']))
+            else:
+                break
+        train_loss = np.mean(loss_train)
 
-    # Validation stage
-    losses = []
-    j_valid = 0
-    for x,y in valid_generator:
-        if j_valid < validation_steps:
-            losses.append( model.evaluate(x,y, verbose=0))
-            j_valid += 1
-        else:
-            break
-    valid_loss = np.mean(losses)
+        # Validation stage
+        losses = []
+        j_valid = 0
+        for x,y in valid_generator:
+            if j_valid < validation_steps:
+                losses.append( model.evaluate(x,y, verbose=0))
+                j_valid += 1
+            else:
+                break
+        valid_loss = np.mean(losses)
 
-    # Save weights
-    if valid_loss < min_val_loss:
-        min_val_loss = valid_loss
-        model.save_weights(OUTPUT_MODEL)
-    print("Epoch %d   -  valid loss: %0.3f   -   train loss: %0.3f    - Time %0.2f" % (i_epoch, valid_loss, train_loss, time.time()-t1))
+        # Save weights
+        if valid_loss < min_val_loss:
+            min_val_loss = valid_loss
+            model.save_weights(OUTPUT_MODEL)
+        print("Epoch %d   -  valid loss: %0.3f   -   train loss: %0.3f    - Time %0.2f" % (i_epoch, valid_loss, train_loss, time.time()-t1))
+except KeyboardInterrupt:
+    model.save_weights(OUTPUT_MODEL.split(".")[0] + "_manually_interrupted.hdf5")
+
+print("EXITING!")
