@@ -88,7 +88,7 @@ loss_history = History()
 # Load model
 model = ResnetBuilder().build_resnet_50((3,image_size_nn,image_size_nn),len(existing_labels))
 model.compile(optimizer=Adam(lr=1e-4), loss='categorical_crossentropy')#,'fmeasure'])
-model.load_weights(OUTPUT_MODEL)
+#model.load_weights(OUTPUT_MODEL)
 
 
 
