@@ -15,3 +15,5 @@ external_projects/projects/*
 */__pycache__/*
 *.ipynb_checkpoints*
 
+config_repo.sh
+old*
