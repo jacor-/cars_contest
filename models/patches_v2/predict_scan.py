@@ -34,8 +34,8 @@ OUTPUT_MODEL = '%s/%s/models/all_discriminator_remote.hdf5' % (settings.DATAMODE
 image_size_nn = 48
 patch_size = 110
 
-batch_size = 10000
-scan_step = 10
+batch_size = 25000
+scan_step = 5
 
 ########################################################
 ### Parameters
@@ -98,17 +98,20 @@ model.load_weights(OUTPUT_MODEL)
 ########################################################
 
 def predict_case(case):
-	t1 = time.time()
-	patches = scan_patches(case, image_size_nn, patch_size, scan_step, batch_size, square_to_scan = None)
-	preds = []
-	for x in patches:
-	    preds.append(model.predict(x))
-	preds = np.vstack(preds)
-	preds = preds.reshape([int(np.sqrt(preds.shape[0])),int(np.sqrt(preds.shape[0])), preds.shape[1]])
-	return preds, time.time()-t1
+    t1 = time.time()
+    patches = scan_patches(case, image_size_nn, patch_size, scan_step, batch_size, square_to_scan = None)
+    preds = []
+    for x in patches:
+        preds.append(model.predict(x))
+    preds = np.vstack(preds)
+    preds = preds.reshape([int(np.sqrt(preds.shape[0])),int(np.sqrt(preds.shape[0])), preds.shape[1]])
+    return preds, time.time()-t1
 
 for casename in dataset_loaders.get_casenames():
-	preds, takentime = predict_case(casename)
-	print("- Calculated case %s with window step %d in %0.0f seconds" % (casename, scan_step, takentime))
-	filename_to_save = annotations_name.format(path=ANNOTATIONS_PATH,scan_window=scan_step, casename=casename)
-	np.savez_compressed(filename_to_save, preds = preds)
+    filename_to_save = annotations_name.format(path=ANNOTATIONS_PATH,scan_window=scan_step, casename=casename)
+    if not os.path.isfile(filename_to_save):
+        preds, takentime = predict_case(casename)
+        print("- Calculated case %s with window step %d in %0.0f seconds" % (casename, scan_step, takentime))
+        np.savez_compressed(filename_to_save, preds = preds)
+    else:
+        print("- [ALREADY DONE] %s" % filename_to_save)
