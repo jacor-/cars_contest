@@ -34,7 +34,7 @@ OUTPUT_MODEL = '%s/%s/models/all_discriminator_remote.hdf5' % (settings.DATAMODE
 image_size_nn = 48
 patch_size = 110
 
-batch_size = 500
+batch_size = 10000
 scan_step = 10
 
 ########################################################
@@ -112,5 +112,3 @@ for casename in dataset_loaders.get_casenames():
 	print("- Calculated case %s with window step %d in %0.0f seconds" % (casename, scan_step, takentime))
 	filename_to_save = annotations_name.format(path=ANNOTATIONS_PATH,scan_window=scan_step, casename=casename)
 	np.savez_compressed(filename_to_save, preds = preds)
-	print(filename_to_save)
-	break
