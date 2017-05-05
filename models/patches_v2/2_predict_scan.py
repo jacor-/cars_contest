@@ -114,7 +114,7 @@ def predict_case(case):
     preds = preds.reshape([int(np.sqrt(preds.shape[0])),int(np.sqrt(preds.shape[0])), preds.shape[1]])
     return preds, time.time()-t1
 
-for casename in dataset_loaders.get_casenames():
+for casename in ['366']: #dataset_loaders.get_casenames():
     filename_to_save = annotations_name.format(path=ANNOTATIONS_PATH,scan_window=scan_step, casename=casename)
     if not os.path.isfile(filename_to_save):
         preds, takentime = predict_case(casename)

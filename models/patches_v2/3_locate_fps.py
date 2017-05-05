@@ -71,7 +71,7 @@ t1 = time.time()
 original_labels = dataset_loaders.groundlabels_dataframe()
 
 ## Set the same metaparameters we used for the first stage prediction
-annotation_basename = 'all_discriminator_remote'
+annotation_basename = 'sfinder'
 model_name = 'patches_single_size'
 annotations_path = "%s/%s/annotations" % (settings.DATAMODEL_PATH, model_name)
 scan_window = 10

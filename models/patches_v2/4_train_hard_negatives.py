@@ -27,6 +27,7 @@ fp_file_path = "%s/patches_single_size/annotations/FPs.csv" % (settings.DATAMODE
 
 # Parameters
 #map_category = {0:'car',1:'car'...}
+map_category = None
 num_valid_cases = 60 # cases to exclude from train
 image_size_nn = 48
 patch_size = 110
