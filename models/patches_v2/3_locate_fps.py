@@ -25,7 +25,10 @@ def detect_blobs(preds):
     ## IN: 2d-greymap being 1 high probability of an element been there and 0 low probability
     ## Out: dataframe ['x','y','r']
     blobs_doh = blob_doh(preds, max_sigma=5, threshold=.01)
-    detected = pd.DataFrame(blobs_doh[blobs_doh[:,2] > 1], columns = ['x','y','r'])
+    if blobs_doh.shape[0] > 0:
+        detected = pd.DataFrame(blobs_doh[blobs_doh[:,2] > 1], columns = ['x','y','r'])
+    else:
+        detected = pd.DataFrame(columns = ['x','y','r'])        
     detected.x = detected.x * scan_window + window_size / 2
     detected.y = detected.y * scan_window + window_size / 2
     return detected
@@ -90,6 +93,8 @@ fp_filename = 'FPs.csv'
 ## Run case per case
 predictions = []
 for casename in dataset_loaders.get_casenames():
+    if casename == 'emtpy':
+        continue
     img, preds, labels = load_predictions(casename, original_labels)
     preds = convert_to_binary_label(preds)
     detected = detect_blobs(preds)

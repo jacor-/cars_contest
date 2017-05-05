@@ -14,12 +14,12 @@ import time
 # Inicialization
 
 ## Pretrained model... I think it will be good to start from here and not from scratch
-INPUT_MODEL = '%s/patches_single_size/models/all_discriminator_remote.hdf5' % (settings.DATAMODEL_PATH)
+#INPUT_MODEL = '%s/patches_single_size/models/all_discriminator_remote.hdf5' % (settings.DATAMODEL_PATH)
 
 ## Name of the new experiment and the new file where we will save the new output model
 experiment_folder_name = 'patches_single_size_fps'
-experiment_name = 'all_resnet_fps' # This one will only be used for the logs
-OUTPUT_MODEL = '%s/%s/models/fps_discriminator.hdf5' % (settings.DATAMODEL_PATH, experiment_folder_name)
+experiment_name = 'all_resnet_fps_two_classes' # This one will only be used for the logs
+OUTPUT_MODEL = '%s/%s/models/fps_discriminator_two_classes.hdf5' % (settings.DATAMODEL_PATH, experiment_folder_name)
 
 ## Provide data to locate the fp file if there is a FP discriminator available
 fp_file_path = "%s/patches_single_size/annotations/FPs.csv" % (settings.DATAMODEL_PATH)
@@ -27,11 +27,23 @@ fp_file_path = "%s/patches_single_size/annotations/FPs.csv" % (settings.DATAMODE
 
 # Parameters
 #map_category = {0:'car',1:'car'...}
+map_category = {
+                  'A':'car',
+                  'B':'car',
+                  'C':'car',
+                  'D':'car',
+                  'E':'car',
+                  'F':'car',
+                  'G':'car',
+                  'H':'car',
+                  'I':'car',
+               }
+#map_category = None
 num_valid_cases = 60 # cases to exclude from train
 image_size_nn = 48
 patch_size = 110
 batch_size = 25
-big_batch_size, valid_batch_size = 5000, 500
+big_batch_size, valid_batch_size = 500, 50
 restart_valid_train = False
 neg_patches = 25
 
@@ -109,12 +121,16 @@ tb = TensorBoard(log_dir=LOGS_PATH, histogram_freq=1, write_graph=False, write_i
 model_checkpoint = ModelCheckpoint(OUTPUT_MODEL, monitor='loss', save_best_only=True)
 loss_history = History()
 
+
 # Load model
 model = ResnetBuilder().build_resnet_50((3,image_size_nn,image_size_nn),len(existing_labels))
 model.compile(optimizer=Adam(lr=1e-4), loss='categorical_crossentropy')#,'fmeasure'])
-model.load_weights(INPUT_MODEL)
+#model.load_weights(INPUT_MODEL)
 
 
+
+
+print(len(existing_labels), existing_labels)
 
 nb_epoch=1000
 verbose=1
@@ -124,7 +140,8 @@ train_steps_per_epoch      = 1
 
 
 min_val_loss = 10000
-try:
+#try:
+if True:
     for i_epoch in range(nb_epoch):
         j_ep = 0
 
@@ -155,7 +172,7 @@ try:
             min_val_loss = valid_loss
             model.save_weights(OUTPUT_MODEL)
         print("Epoch %d   -  valid loss: %0.3f   -   train loss: %0.3f    - Time %0.2f" % (i_epoch, valid_loss, train_loss, time.time()-t1))
-except:
-    model.save_weights(OUTPUT_MODEL.split(".")[0] + "_interrupted_by_exception.hdf5")
+#except:
+#    model.save_weights(OUTPUT_MODEL.split(".")[0] + "_interrupted_by_exception.hdf5")
 
 print("EXITING!")
