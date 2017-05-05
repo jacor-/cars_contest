@@ -40,14 +40,16 @@ map_category = {
                   'I':'car',
                }
 #map_category = None
+restart_valid_train = True
+
 num_valid_cases = 60 # cases to exclude from train
 image_size_nn = 48
 patch_size = 110
 batch_size = 25
-big_batch_size, valid_batch_size = 500, 50
-restart_valid_train = False
+big_batch_size, valid_batch_size = 5000, 500
 neg_patches = 25
 
+min_buffer_before_start_train, min_buffer_before_valid = 20000, 5000
 
 # We create the data structure we need
 os.system('mkdir -p %s/%s' % (settings.DATAMODEL_PATH, experiment_folder_name))
@@ -96,9 +98,8 @@ existing_labels = np.concatenate([original_labels['class'].unique(), ['backgroun
 labelencoder = LabelEncoding(existing_labels)
 data_augmentation = ImageDataGenerator(vertical_flip=True, horizontal_flip = True, zoom_range = 0.02, rotation_range=180)
 
-train_generator = data_generator(data_augmentation, labelencoder, train_data, batch_size=big_batch_size, min_buffer_before_start = 20000, patch_size=patch_size, image_size_nn=image_size_nn, df_FP = fps_data, neg_patches = neg_patches)
-valid_generator = data_generator(None, labelencoder, valid_data, batch_size=valid_batch_size,  min_buffer_before_start = 5000, patch_size=patch_size, image_size_nn=image_size_nn, df_FP = fps_data, neg_patches = neg_patches)
-
+train_generator = data_generator(data_augmentation, labelencoder, train_data, batch_size=big_batch_size, min_buffer_before_start = min_buffer_before_start_train, patch_size=patch_size, image_size_nn=image_size_nn, df_FP = fps_data, neg_patches = neg_patches)
+valid_generator = data_generator(None, labelencoder, valid_data, batch_size=valid_batch_size,  min_buffer_before_start = min_buffer_before_valid, patch_size=patch_size, image_size_nn=image_size_nn, df_FP = fps_data, neg_patches = neg_patches)
 
 
 

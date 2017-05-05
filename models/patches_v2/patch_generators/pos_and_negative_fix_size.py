@@ -18,10 +18,16 @@ class LabelEncoding(object):
         
         self.encoder = encoder
         self.lb = lb
+
+        self.num_classes = len(input_classes)
     
     def encode(self, x):
-        return self.lb.transform(self.encoder.transform(x))
-    
+        label = self.lb.transform(self.encoder.transform(x)) 
+        if self.num_classes == 2:
+            return np.hstack((label, 1 - label))
+        else:
+            return label
+            
     def get_class_id(self, label, binarized = True):
         if type(label) == np.ndarray:
             label = self.lb.classes_[np.argmax(label)]
