@@ -2,6 +2,15 @@
 # This line solves some minor problems when you do not have propery set the PYTHONPATH
 exec(compile(open("fix_paths.py", "rb").read(), "fix_paths.py", 'exec'))
 
+import tensorflow as tf 
+import keras
+from keras.backend.tensorflow_backend import set_session
+config = tf.ConfigProto()
+config.gpu_options.per_process_gpu_memory_fraction = 0.5
+config.gpu_options.allow_growth = True
+set_session(tf.Session(config=config))
+
+
 import settings
 import os
 import pandas as pd
