@@ -1,3 +1,4 @@
+
 # This line solves some minor problems when you do not have propery set the PYTHONPATH
 exec(compile(open("fix_paths.py", "rb").read(), "fix_paths.py", 'exec'))
 
@@ -7,6 +8,9 @@ from keras.backend.tensorflow_backend import set_session
 config = tf.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction = 0.5
 config.gpu_options.allow_growth = True
+set_session(tf.Session(config=config))
+
+
 
 import settings
 import os
@@ -43,6 +47,18 @@ patch_size = 110
 
 batch_size = 25000
 scan_step = 10
+
+map_category = {
+                  'A':'car',
+                  'B':'car',
+                  'C':'car',
+                  'D':'car',
+                  'E':'car',
+                  'F':'car',
+                  'G':'car',
+                  'H':'car',
+                  'I':'car',
+               }
 
 ########################################################
 ### Parameters
@@ -82,6 +98,7 @@ def scan_patches(imagename, image_size_nn, patch_size, step_frames, batch_size, 
 
 # We load the cases as they were originally...if needed
 original_labels = dataset_loaders.groundlabels_dataframe()
+original_labels = dataset_loaders.map_labels(original_labels, map_category)
 ## train_data = pd.read_csv('%s/%s/train_df.csv' % (settings.DATAMODEL_PATH, experiment_folder_name))
 ## valid_data = pd.read_csv('%s/%s/valid_df.csv' % (settings.DATAMODEL_PATH, experiment_folder_name))
 
@@ -114,11 +131,18 @@ def predict_case(case):
     preds = preds.reshape([int(np.sqrt(preds.shape[0])),int(np.sqrt(preds.shape[0])), preds.shape[1]])
     return preds, time.time()-t1
 
-for casename in ['366']: #dataset_loaders.get_casenames():
-    filename_to_save = annotations_name.format(path=ANNOTATIONS_PATH,scan_window=scan_step, casename=casename)
-    if not os.path.isfile(filename_to_save):
-        preds, takentime = predict_case(casename)
-        print("- Calculated case %s with window step %d in %0.0f seconds" % (casename, scan_step, takentime))
-        np.savez_compressed(filename_to_save, preds = preds)
-    else:
-        print("- [ALREADY DONE] %s" % filename_to_save)
+
+for test in [False, True]:
+    for casename in dataset_loaders.get_casenames(test = test):
+        if casename == 'emtpy':
+            continue
+        try:
+            filename_to_save = annotations_name.format(path=ANNOTATIONS_PATH,scan_window=scan_step, casename=casename)
+            if not os.path.isfile(filename_to_save):
+                preds, takentime = predict_case(casename)
+                print("- Calculated case %s with window step %d in %0.0f seconds" % (casename, scan_step, takentime))
+                np.savez_compressed(filename_to_save, preds = preds)
+            else:
+                print("- [ALREADY DONE] %s" % filename_to_save)
+        except:
+            print("An error ocured in case %s"%casename)

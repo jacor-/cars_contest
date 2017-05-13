@@ -2,14 +2,15 @@ exec(compile(open("fix_paths.py", "rb").read(), "fix_paths.py", 'exec'))
 import settings
 import time
 
-batch_size = 20
-big_batch_size = 1000
+batch_size = 10
+train_big_batch_size = 5000
+valid_big_batch_size = 1000
 
 image_size_nn = 45
 N_valid_cases = 50
 
-wind = 110
-big_patch_size = 200
+wind = 100
+big_patch_size = 100
 
 max_data = 1000000000
 
@@ -17,7 +18,8 @@ max_data = 1000000000
 
 experiment_folder_name = 'final_classificator'
 experiment_name = 'final_classificator' # This one will only be used for the logs
-OUTPUT_MODEL = '%s/%s/models/final_classificator_model.hdf5' % (settings.DATAMODEL_PATH, experiment_folder_name)
+INPUT_MODEL = '%s/%s/models/final_classificator_model.hdf5' % (settings.DATAMODEL_PATH, experiment_folder_name)
+OUTPUT_MODEL = '%s/%s/models/final_classificator_model_2.hdf5' % (settings.DATAMODEL_PATH, experiment_folder_name)
 
 existing_labels = ['A','B','C','D','E','F','G','H','I','FP']
 
@@ -40,13 +42,14 @@ os.system('mkdir -p %s/%s/logs' % (settings.DATAMODEL_PATH, experiment_folder_na
 csv = pd.read_csv('train_predicted_positions_2.csv')
 dataset = csv[csv.pointtype.isin(['TP','FP'])][['xdet','ydet','classref','id']].fillna('FP')
 
-cases = sorted(dataset_loaders.get_casenames())
+cases = [x for x in sorted(dataset_loaders.get_casenames()) if x != 'emtpy']
 train_cases = cases[N_valid_cases:]
 valid_cases = cases[:N_valid_cases]
 
 def get_samples(CASES, patch_size, max_cases = 1000000):
     X, Y = [], []
-    for casename in CASES:
+    for icase,casename in enumerate(CASES):
+        print("%d out of %d,   %d" % (icase, len(CASES), len(X)))
         img = dataset_loaders.load_image(casename)
         for ind in dataset[dataset.id == casename].index.values:
             row = dataset.ix[ind]
@@ -60,6 +63,7 @@ def get_samples(CASES, patch_size, max_cases = 1000000):
                     break
         if len(X) >= max_cases:
             break
+    print(len(X))
     return np.array(X), lb.transform(np.array(Y))
 
 def get_data(x_base, wind):
@@ -89,8 +93,8 @@ def generate_samples(X,Y, batch_size, wind):
 X_train, Y_train = get_samples(train_cases, patch_size = big_patch_size, max_cases = max_data)
 X_test , Y_test  = get_samples(valid_cases , patch_size = big_patch_size, max_cases = max_data)
 
-train_generator = generate_samples(X_train,Y_train, batch_size = big_batch_size, wind = wind)
-valid_generator = generate_samples(X_test, Y_test , batch_size = big_batch_size, wind = wind)
+train_generator = generate_samples(X_train,Y_train, batch_size = train_big_batch_size, wind = wind)
+valid_generator = generate_samples(X_test, Y_test , batch_size = valid_big_batch_size, wind = wind)
 
 
 
@@ -100,7 +104,7 @@ from keras import backend as K
 import tensorflow as tf 
 import keras
 from keras.backend.tensorflow_backend import set_session
-from keras.optimizers import Adam
+from keras.optimizers import Adam, Adagrad
 from keras.callbacks import ModelCheckpoint, Callback, History
 from dl_utils.dl_networks.resnet import ResnetBuilder
 from dl_utils.tb_callback import TensorBoard
@@ -117,11 +121,12 @@ loss_history = History()
 
 # Load model
 model = ResnetBuilder().build_resnet_50((3,image_size_nn,image_size_nn),len(existing_labels))
-model.compile(optimizer=Adam(lr=1e-4), loss='categorical_crossentropy', metrics=['accuracy'])#,'fmeasure'])
-#model.load_weights(INPUT_MODEL)
+#model.compile(optimizer=Adam(lr=1e-4), loss='categorical_crossentropy', metrics=['accuracy'])#,'fmeasure'])
+model.compile(optimizer=Adagrad(lr=1e-3), loss='categorical_crossentropy', metrics=['accuracy'])#,'fmeasure'])
+model.load_weights(INPUT_MODEL)
 
 
-nb_epoch=1000
+nb_epoch=1000000
 min_val_loss = 10000
 
 try:
@@ -143,6 +148,7 @@ try:
         print("Epoch %d   -  valid loss: %0.3f   -   train loss: %0.3f  , valid acc: %0.3f  - Time %0.2f" % (i_epoch, valid_loss, train_loss, acc, time.time()-t1))
 except:
     model.save_weights(OUTPUT_MODEL.split(".")[0] + "_interrupted_by_exception.hdf5")
+
 
 
 
