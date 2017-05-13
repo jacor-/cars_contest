@@ -46,26 +46,29 @@ cases = [x for x in sorted(dataset_loaders.get_casenames()) if x != 'emtpy']
 train_cases = cases[N_valid_cases:]
 valid_cases = cases[:N_valid_cases]
 
+def get_sample(case, patch_size):
+    img = dataset_loaders.load_image(casename)
+    for ind in dataset[dataset.id == casename].index.values:
+        row = dataset.ix[ind]
+        x0,x1,y0,y1 = int(row['xdet']-patch_size/2),int(row['xdet']+patch_size/2), int(row['ydet']-patch_size/2),int(row['ydet']+patch_size/2)
+        if x0 >= 0 and y0 >= 0 and x1 < img.shape[0] and y1 < img.shape[1]:
+            patch = img[x0:x1,y0:y1,:]
+            X.append(patch)
+            Y.append(row['classref'])
+    return np.array(X), np.array(Y)
+
 def get_samples(CASES, patch_size, max_cases = 1000000):
     X, Y = [], []
     for icase,casename in enumerate(CASES):
         print("%d out of %d,   %d" % (icase, len(CASES), len(X)))
-        img = dataset_loaders.load_image(casename)
-        for ind in dataset[dataset.id == casename].index.values:
-            row = dataset.ix[ind]
-            x0,x1,y0,y1 = int(row['xdet']-patch_size/2),int(row['xdet']+patch_size/2), int(row['ydet']-patch_size/2),int(row['ydet']+patch_size/2)
-            if x0 >= 0 and y0 >= 0 and x1 < img.shape[0] and y1 < img.shape[1]:
-                patch = img[x0:x1,y0:y1,:]
-                if len(X) < max_cases:
-                    X.append(patch)
-                    Y.append(row['classref'])
-                else:
-                    break
-        if len(X) >= max_cases:
-            break
-    print(len(X))
-    return np.array(X), lb.transform(np.array(Y))
-
+        X_, Y_ = get_sample(case, patch_size)
+        if len(X) == 0:
+            X, Y = X_, Y_
+        else:
+            X = np.vstack([X, X_])
+            Y = np.concatenate([Y, Y_])
+    return X, lb.transform(Y)
+    
 def get_data(x_base, wind):
     x0,x1 = int(x_base.shape[1]/2) - int(wind/2), int(x_base.shape[1]/2) + int(wind/2) 
     y0,y1 = int(x_base.shape[2]/2) - int(wind/2), int(x_base.shape[2]/2) + int(wind/2)
